@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentación de FlashML</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "flash-red": "#cc0000",
+              "flash-red-dark": "#990000",
+              "flash-yellow": "#ffcc00",
+              "flash-gold": "#e6b800",
+              "flash-dark": "#121212",
+              "flash-gray": "#1e1e1e",
+              "flash-light": "#f5f5f5",
+              "flash-accent": "#f44336",
+            },
+            boxShadow: {
+              flash: "0 0 20px rgba(255, 204, 0, 0.3)",
+              "flash-glow": "0 0 15px rgba(204, 0, 0, 0.6)",
+            },
+            animation: {
+              "pulse-subtle": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              lightning: "lightning 1.5s ease-in-out infinite",
+            },
+            keyframes: {
+              lightning: {
+                "0%, 100%": { opacity: "1" },
+                "50%": { opacity: "0.7" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .theme-dark {
+        background-color: #121212;
+        color: #ffffff;
+      }
+      .theme-dark .bg-flash-dark {
+        background-color: #121212;
+      }
+      .theme-dark .bg-flash-gray {
+        background-color: #1e1e1e;
+      }
+      .theme-dark .text-gray-400 {
+        color: #9ca3af;
+      }
+
+      .theme-light {
+        background-color: #f5f5f5;
+        color: #333333;
+      }
+      .theme-light .bg-flash-dark {
+        background-color: #ffffff;
+      }
+      .theme-light .bg-flash-gray {
+        background-color: #e5e7eb;
+      }
+      .theme-light .text-gray-400 {
+        color: #4b5563;
+      }
+
+      .tooltip {
+        position: relative;
+      }
+
+      .tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #121212;
+        color: #ffcc00;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 100;
+        border: 1px solid #cc0000;
+      }
+
+      pre code {
+        display: block;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #1e1e1e;
+        color: #ffffff;
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      .collapsible-header {
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .collapsible-content {
+        display: none;
+      }
+
+      .collapsible-content.active {
+        display: block;
+      }
+    </style>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body
+    class="theme-dark min-h-screen flex flex-col bg-flash-dark"
+  >
+    <!-- Navbar -->
+    <nav
+      class="bg-flash-gray bg-opacity-95 shadow-lg z-10 sticky top-0 backdrop-filter backdrop-blur-sm border-b border-flash-red"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 mr-4">
+              <svg
+                class="h-10 w-10"
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="#121212"
+                  stroke="#ffcc00"
+                  stroke-width="2"
+                />
+                <path
+                  d="M65,20 L35,50 L50,50 L35,80 L65,50 L50,50 Z"
+                  fill="#cc0000"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1
+                class="text-2xl font-bold bg-gradient-to-r from-flash-red to-flash-yellow bg-clip-text text-transparent"
+              >
+                Documentación de FlashML
+              </h1>
+              <p class="text-xs text-gray-400">
+                Crea páginas web a la velocidad de The Flash
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <button
+              id="theme-toggle"
+              class="p-2 rounded-full bg-flash-gray hover:bg-opacity-80 transition-all tooltip"
+              data-tooltip="Cambiar tema"
+            >
+              <svg
+                id="theme-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-flash-yellow"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
+              </svg>
+            </button>
+            <a
+              href="/"
+              class="p-2 rounded-full bg-flash-gray hover:bg-opacity-80 transition-all tooltip"
+              data-tooltip="Volver al compilador"
+            >
+              <i class="fas fa-arrow-left text-flash-yellow"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+      <h2 class="text-3xl font-bold text-flash-yellow mb-6">
+        Documentación de FlashML
+      </h2>
+      <div class="bg-flash-gray rounded-lg shadow-lg p-6 space-y-6">
+        <!-- Introducción -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Introducción
+          </h3>
+          <p class="text-gray-300">
+            FlashML es un lenguaje de marcado inspirado en la velocidad y dinamismo de *The Flash*. Diseñado para crear páginas web de manera rápida y estructurada, FlashML utiliza etiquetas temáticas como <code class="bg-black bg-opacity-40 px-1 rounded">@velocista</code>, <code class="bg-black bg-opacity-40 px-1 rounded">@temporada</code>, y <code class="bg-black bg-opacity-40 px-1 rounded">@personaje</code> que se transforman en HTML semántico. El compilador FlashML analiza el código, valida su estructura, y genera páginas web con estilos inspirados en el universo de *The Flash*.
+          </p>
+        </section>
+
+        <!-- Instalación y Uso -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Instalación y Uso
+          </h3>
+          <p class="text-gray-300 mb-2">
+            Para usar el compilador FlashML:
+          </p>
+          <ol class="list-decimal list-inside text-gray-300 space-y-2">
+            <li>Accede a la interfaz web en <a href="/" class="text-flash-yellow hover:underline">Compilador FlashML</a>.</li>
+            <li>Escribe tu código FlashML en el editor integrado (basado en CodeMirror).</li>
+            <li>Haz clic en el botón de compilación (ícono de rayo) para procesar el código.</li>
+            <li>Si la compilación es exitosa, usa los botones "Ver HTML" o "Descargar HTML" en el panel "Archivos Generados".</li>
+            <li>Revisa los errores en el panel "Estado de Compilación" si ocurre algún problema.</li>
+          </ol>
+          <p class="text-gray-300 mt-2">
+            Usa <code class="bg-black bg-opacity-40 px-1 rounded">Ctrl+S</code> para auto-indentar tu código y mantenerlo organizado.
+          </p>
+        </section>
+
+        <!-- Sintaxis Básica -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Sintaxis Básica
+          </h3>
+          <p class="text-gray-300 mb-2">
+            Un documento FlashML debe comenzar con una etiqueta raíz <code class="bg-black bg-opacity-40 px-1 rounded">@velocista</code>. Las etiquetas se definen con <code class="bg-black bg-opacity-40 px-1 rounded">@nombre</code>, atributos como <code class="bg-black bg-opacity-40 px-1 rounded">nombre="valor"</code>, y se cierran con <code class="bg-black bg-opacity-40 px-1 rounded">@/nombre</code>. Los comentarios se escriben con <code class="bg-black bg-opacity-40 px-1 rounded">##texto##</code>.
+          </p>
+          <pre><code>@velocista
+  @titulo Central City @/titulo
+  @temporada numero="1"
+    @episodio
+      @escena
+        @personaje nombre="Barry Allen"
+          @dialogo ¡Corre, Barry, corre! @/dialogo
+        @/personaje
+      @/escena
+    @/episodio
+  @/temporada
+@/velocista
+          </code></pre>
+          <p class="text-gray-300 mt-2">
+            Este código genera una página HTML con un título, una sección de temporada, y un episodio con una escena y diálogo.
+          </p>
+        </section>
+
+        <!-- Etiquetas y Atributos -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Etiquetas y Atributos
+          </h3>
+          <p class="text-gray-300 mb-2">
+            FlashML soporta un conjunto de etiquetas temáticas que se mapean a elementos HTML semánticos. Cada etiqueta tiene reglas específicas sobre dónde puede usarse y qué atributos requiere.
+          </p>
+          <div class="collapsible-header bg-black bg-opacity-40 p-3 rounded-md mb-2">
+            <h4 class="text-flash-yellow">Lista de Etiquetas</h4>
+            <i class="fas fa-chevron-down text-flash-yellow"></i>
+          </div>
+          <div class="collapsible-content">
+            <table class="w-full text-gray-300 text-sm border-collapse">
+              <thead>
+                <tr class="bg-black bg-opacity-50">
+                  <th class="p-2 border border-flash-gray">Etiqueta</th>
+                  <th class="p-2 border border-flash-gray">Descripción</th>
+                  <th class="p-2 border border-flash-gray">Atributos Requeridos</th>
+                  <th class="p-2 border border-flash-gray">Atributos Opcionales</th>
+                  <th class="p-2 border border-flash-gray">Permitido en</th>
+                  <th class="p-2 border border-flash-gray">Mapeo HTML</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@velocista</code></td>
+                  <td class="p-2 border border-flash-gray">Contenedor principal o genérico</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">titulo, episodio, escena, personaje, poder, imagen, villanos, lugar, equipo</td>
+                  <td class="p-2 border border-flash-gray">Raíz</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;div&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@titulo</code></td>
+                  <td class="p-2 border border-flash-gray">Título principal</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;h1&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@temporada</code></td>
+                  <td class="p-2 border border-flash-gray">Sección de temporada</td>
+                  <td class="p-2 border border-flash-gray">numero</td>
+                  <td class="p-2 border border-flash-gray">episodio, titulo</td>
+                  <td class="p-2 border border-flash-gray">velocista</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;article&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@episodio</code></td>
+                  <td class="p-2 border border-flash-gray">Sección de episodio</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">titulo, escena, personaje, poder, imagen, villanos, lugar, equipo</td>
+                  <td class="p-2 border border-flash-gray">velocista, temporada</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;section&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@escena</code></td>
+                  <td class="p-2 border border-flash-gray">Escena dentro de un episodio</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">personaje, dialogo, accion, poder, superspeed, phasing, cryokinesis, vibration, timetravel, speedforce, metahuman</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;section&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@personaje</code></td>
+                  <td class="p-2 border border-flash-gray">Representa un personaje</td>
+                  <td class="p-2 border border-flash-gray">nombre</td>
+                  <td class="p-2 border border-flash-gray">actor, poder</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio, escena, lugar, equipo</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;figure&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@poder</code></td>
+                  <td class="p-2 border border-flash-gray">Habilidad o poder</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio, escena, personaje</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@dialogo</code></td>
+                  <td class="p-2 border border-flash-gray">Diálogo de un personaje</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">rapido, superspeed, phasing, cryokinesis, vibration, timetravel, speedforce, metahuman</td>
+                  <td class="p-2 border border-flash-gray">escena, personaje</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;p&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@rapido</code></td>
+                  <td class="p-2 border border-flash-gray">Énfasis en texto rápido</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;em&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@accion</code></td>
+                  <td class="p-2 border border-flash-gray">Acción o evento</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">velocidad, superspeed, phasing, cryokinesis, vibration, timetravel, speedforce, metahuman</td>
+                  <td class="p-2 border border-flash-gray">escena, personaje</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;aside&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@imagen</code></td>
+                  <td class="p-2 border border-flash-gray">Imagen</td>
+                  <td class="p-2 border border-flash-gray">src</td>
+                  <td class="p-2 border border-flash-gray">alt</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio, personaje</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;img&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@villanos</code></td>
+                  <td class="p-2 border border-flash-gray">Lista de villanos</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">villano</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;ul&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@villano</code></td>
+                  <td class="p-2 border border-flash-gray">Villano individual</td>
+                  <td class="p-2 border border-flash-gray">nombre</td>
+                  <td class="p-2 border border-flash-gray">poder</td>
+                  <td class="p-2 border border-flash-gray">villanos</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;li&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@superspeed</code></td>
+                  <td class="p-2 border border-flash-gray">Súper velocidad</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo, escena, personaje, accion</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@phasing</code></td>
+                  <td class="p-2 border border-flash-gray">Faseo</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo, escena, personaje, accion</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@cryokinesis</code></td>
+                  <td class="p-2 border border-flash-gray">Criocinesis</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo, escena, personaje, accion</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@vibration</code></td>
+                  <td class="p-2 border border-flash-gray">Vibración</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo, escena, personaje, accion</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@timetravel</code></td>
+                  <td class="p-2 border border-flash-gray">Viaje en el tiempo</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo, escena, personaje, accion</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@speedforce</code></td>
+                  <td class="p-2 border border-flash-gray">Fuerza de velocidad</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo, escena, personaje, accion</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@metahuman</code></td>
+                  <td class="p-2 border border-flash-gray">Metahumano</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">-</td>
+                  <td class="p-2 border border-flash-gray">dialogo, escena, personaje, accion</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;span&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@lugar</code></td>
+                  <td class="p-2 border border-flash-gray">Ubicación o escenario</td>
+                  <td class="p-2 border border-flash-gray">nombre</td>
+                  <td class="p-2 border border-flash-gray">personaje</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio, escena</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;div&gt;</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>@equipo</code></td>
+                  <td class="p-2 border border-flash-gray">Equipo de personajes</td>
+                  <td class="p-2 border border-flash-gray">nombre</td>
+                  <td class="p-2 border border-flash-gray">personaje</td>
+                  <td class="p-2 border border-flash-gray">velocista, episodio, escena</td>
+                  <td class="p-2 border border-flash-gray"><code>&lt;div&gt;</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="collapsible-header bg-black bg-opacity-40 p-3 rounded-md mb-2 mt-4">
+            <h4 class="text-flash-yellow">Lista de Atributos</h4>
+            <i class="fas fa-chevron-down text-flash-yellow"></i>
+          </div>
+          <div class="collapsible-content">
+            <table class="w-full text-gray-300 text-sm border-collapse">
+              <thead>
+                <tr class="bg-black bg-opacity-50">
+                  <th class="p-2 border border-flash-gray">Atributo</th>
+                  <th class="p-2 border border-flash-gray">Descripción</th>
+                  <th class="p-2 border border-flash-gray">Usado en</th>
+                  <th class="p-2 border border-flash-gray">Mapeo HTML</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>nombre</code></td>
+                  <td class="p-2 border border-flash-gray">Nombre del personaje, villano, lugar o equipo</td>
+                  <td class="p-2 border border-flash-gray">personaje, villano, lugar, equipo</td>
+                  <td class="p-2 border border-flash-gray"><code>data-nombre</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>actor</code></td>
+                  <td class="p-2 border border-flash-gray">Actor que interpreta al personaje</td>
+                  <td class="p-2 border border-flash-gray">personaje</td>
+                  <td class="p-2 border border-flash-gray"><code>data-actor</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>velocidad</code></td>
+                  <td class="p-2 border border-flash-gray">Nivel de velocidad en una acción</td>
+                  <td class="p-2 border border-flash-gray">accion</td>
+                  <td class="p-2 border border-flash-gray"><code>data-velocidad</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>numero</code></td>
+                  <td class="p-2 border border-flash-gray">Número de la temporada</td>
+                  <td class="p-2 border border-flash-gray">temporada</td>
+                  <td class="p-2 border border-flash-gray"><code>data-temporada</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>src</code></td>
+                  <td class="p-2 border border-flash-gray">Ruta de la imagen</td>
+                  <td class="p-2 border border-flash-gray">imagen</td>
+                  <td class="p-2 border border-flash-gray"><code>src</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>alt</code></td>
+                  <td class="p-2 border border-flash-gray">Texto alternativo para la imagen</td>
+                  <td class="p-2 border border-flash-gray">imagen</td>
+                  <td class="p-2 border border-flash-gray"><code>alt</code></td>
+                </tr>
+                <tr>
+                  <td class="p-2 border border-flash-gray"><code>poder</code></td>
+                  <td class="p-2 border border-flash-gray">Habilidad del personaje o villano</td>
+                  <td class="p-2 border border-flash-gray">personaje, villano</td>
+                  <td class="p-2 border border-flash-gray"><code>poder</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Reglas Semánticas -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Reglas Semánticas
+          </h3>
+          <p class="text-gray-300 mb-2">
+            FlashML enforces strict semantic rules to ensure valid document structure:
+          </p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Un documento debe tener al menos una etiqueta raíz <code class="bg-black bg-opacity-40 px-1 rounded">@velocista</code>.</li>
+            <li>Algunas etiquetas requieren atributos específicos (e.g., <code class="bg-black bg-opacity-40 px-1 rounded">nombre</code> para <code class="bg-black bg-opacity-40 px-1 rounded">@personaje</code>).</li>
+            <li>Las etiquetas solo pueden anidarse en contextos permitidos (e.g., <code class="bg-black bg-opacity-40 px-1 rounded">@villano</code> solo dentro de <code class="bg-black bg-opacity-40 px-1 rounded">@villanos</code>).</li>
+            <li>Atributos no permitidos generan errores semánticos.</li>
+          </ul>
+          <p class="text-gray-300 mt-2">
+            Consulta la tabla de etiquetas para detalles sobre dónde puede usarse cada etiqueta y sus requisitos.
+          </p>
+        </section>
+
+        <!-- Ejemplo Completo -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Ejemplo Completo
+          </h3>
+          <p class—this text-gray-300 mb-2">
+            Este ejemplo muestra una página FlashML que describe un episodio de *The Flash* con personajes, diálogos, acciones, y villanos.
+          </p>
+          <pre><code>@velocista
+  @titulo Batalla en Central City @/titulo
+  @temporada numero="2"
+    @episodio
+      @escena
+        @lugar nombre="Central City"
+          @personaje nombre="Barry Allen" actor="Grant Gustin"
+            @dialogo
+              ¡@superspeed Nadie puede detenerme! @/superspeed
+            @/dialogo
+            @accion velocidad="máxima"
+              Barry usa @speedforce la Fuerza de Velocidad @/speedforce para esquivar un ataque.
+            @/accion
+          @/personaje
+          @personaje nombre="Caitlin Snow" actor="Danielle Panabaker"
+            @dialogo
+              ¡Cuidado con @cryokinesis el hielo! @/cryokinesis
+            @/dialogo
+          @/personaje
+        @/lugar
+      @/escena
+      @villanos
+        @villano nombre="Captain Cold" poder="Criocinesis"
+          Leonard Snart apunta con su arma de hielo.
+        @/villano
+        @villano nombre="Heat Wave" poder="Piroquinesis"
+          Mick Rory lanza una ráfaga de fuego.
+        @/villano
+      @/villanos
+      @imagen src="/images/battle.jpg" alt="Batalla en Central City" @/imagen
+    @/episodio
+  @/temporada
+  ## Comentario: Escena épica de batalla ##
+@/velocista
+          </code></pre>
+          <p class="text-gray-300 mt-2">
+            Este código genera una página HTML con una estructura semántica, estilos temáticos, y comentarios preservados como comentarios HTML.
+          </p>
+        </section>
+
+        <!-- Estilos Generados -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Estilos Generados
+          </h3>
+          <p class="text-gray-300 mb-2">
+            El compilador FlashML incluye estilos CSS predefinidos inspirados en *The Flash*. Cada etiqueta tiene una clase CSS correspondiente que aplica estilos visuales:
+          </p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li><code class="bg-black bg-opacity-40 px-1 rounded">.velocista</code>: Borde rojo y fondo gris oscuro.</li>
+            <li><code class="bg-black bg-opacity-40 px-1 rounded">.titulo</code>: Texto rojo con borde amarillo inferior.</li>
+            <li><code class="bg-black bg-opacity-40 px-1 rounded">.superspeed</code>: Texto amarillo con estilo cursivo.</li>
+            <li><code class="bg-black bg-opacity-40 px-1 rounded">.villano</code>: Fondo rojo oscuro para villanos.</li>
+          </ul>
+          <p class="text-gray-300 mt-2">
+            Consulta el archivo <code>generator.py</code> para la lista completa de estilos.
+          </p>
+        </section>
+
+        <!-- Errores Comunes -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Errores Comunes
+          </h3>
+          <p class="text-gray-300 mb-2">
+            Aquí hay algunos errores comunes y cómo evitarlos:
+          </p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>
+              <strong>Etiqueta de cierre faltante</strong>: Asegúrate de cerrar cada etiqueta con <code class="bg-black bg-opacity-40 px-1 rounded">@/nombre</code>.
+              <pre><code>@velocista
+  @titulo Sin cerrar
+  ## Error: Falta @/titulo ##
+@/velocista
+              </code></pre>
+            </li>
+            <li>
+              <strong>Atributo requerido faltante</strong>: Por ejemplo, <code class="bg-black bg-opacity-40 px-1 rounded">@personaje</code> requiere <code class="bg-black bg-opacity-40 px-1 rounded">nombre</code>.
+              <pre><code>@personaje  ## Error: Falta nombre ##
+  @dialogo Hola @/dialogo
+@/personaje
+              </code></pre>
+            </li>
+            <li>
+              <strong>Etiqueta en contexto inválido</strong>: Por ejemplo, <code class="bg-black bg-opacity-40 px-1 rounded">@villano</code> solo puede estar dentro de <code class="bg-black bg-opacity-40 px-1 rounded">@villanos</code>.
+              <pre><code>@velocista
+  @villano nombre="Zoom"  ## Error: @villano no permitido aquí ##
+@/velocista
+              </code></pre>
+            </li>
+            <li>
+              <strong>Sintaxis inválida</strong>: Asegúrate de que los atributos estén entre comillas y que no haya espacios extra.
+              <pre><code>@velocista tipo = "página"  ## Error: Espacio antes de = ##
+  ¡Hola!
+@/velocista
+              </code></pre>
+            </li>
+            <li>
+              <strong>Valor de atributo suelto</strong>: Un valor debe estar precedido por un nombre de atributo.
+              <pre><code>@velocista "página"  ## Error: Valor sin nombre de atributo ##
+  ¡Hola!
+@/velocista
+              </code></pre>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Consejos Avanzados -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Consejos Avanzados
+          </h3>
+          <p class="text-gray-300 mb-2">
+            Maximiza tu uso de FlashML con estos consejos:
+          </p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li>Usa comentarios (<code class="bg-black bg-opacity-40 px-1 rounded">##texto##</code>) para documentar escenas complejas.</li>
+            <li>Aprovecha etiquetas de poder como <code class="bg-black bg-opacity-40 px-1 rounded">@superspeed</code> y <code class="bg-black bg-opacity-40 px-1 rounded">@speedforce</code> para resaltar acciones dinámicas.</li>
+            <li>Organiza tu contenido con <code class="bg-black bg-opacity-40 px-1 rounded">@temporada</code> y <code class="bg-black bg-opacity-40 px-1 rounded">@episodio</code> para una estructura clara.</li>
+            <li>Revisa el panel "Estado de Compilación" para depurar errores rápidamente.</li>
+          </ul>
+        </section>
+
+        <!-- Recursos Adicionales -->
+        <section>
+          <h3 class="text-xl font-semibold text-flash-yellow mb-3">
+            Recursos Adicionales
+          </h3>
+          <p class="text-gray-300">
+            Explora más sobre FlashML:
+          </p>
+          <ul class="list-disc list-inside text-gray-300 space-y-2">
+            <li><a href="/" class="text-flash-yellow hover:underline">Compilador FlashML</a>: Prueba el compilador en línea.</li>
+            <li><a href="https://theflash.fandom.com/wiki/The_Flash_Wiki" class="text-flash-yellow hover:underline">Wiki de The Flash</a>: Inspírate en el universo de *The Flash*.</li>
+            <li><a href="mailto:support@flashml.dev" class="text-flash-yellow hover:underline">Soporte</a>: Contacta al equipo de desarrollo para dudas o sugerencias.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer
+      class="mt-6 py-4 bg-flash-gray border-t border-flash-red border-opacity-30 text-center text-sm text-gray-400"
+    >
+      <div class="container mx-auto px-4">
+        <p>
+          FlashML Compiler v1.0.3 • Transformando tu código a la velocidad de la luz
+        </p>
+        <p class="mt-1 text-xs">
+          <span class="text-flash-yellow">⚡</span> Desarrollado con pasión por
+          velocistas de código <span class="text-flash-yellow">⚡</span>
+        </p>
+      </div>
+    </footer>
+
+    <!-- Script para cambio de tema y collapsible -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Tema
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        document.body.className = `theme-${savedTheme} min-h-screen flex flex-col bg-flash-dark`;
+        const themeIcon = document.getElementById("theme-icon");
+        themeIcon.innerHTML = savedTheme === "light" ? 
+          `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>` :
+          `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
+
+        document.getElementById("theme-toggle").addEventListener("click", () => {
+          const currentTheme = document.body.classList.contains("theme-dark") ? "dark" : "light";
+          const newTheme = currentTheme === "dark" ? "light" : "dark";
+          document.body.classList.remove(`theme-${currentTheme}`);
+          document.body.classList.add(`theme-${newTheme}`);
+          localStorage.setItem("theme", newTheme);
+          themeIcon.innerHTML = newTheme === "light" ? 
+            `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>` :
+            `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
+        });
+
+        // Collapsible sections
+        document.querySelectorAll(".collapsible-header").forEach(header => {
+          header.addEventListener("click", () => {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector("i");
+            content.classList.toggle("active");
+            icon.classList.toggle("fa-chevron-down");
+            icon.classList.toggle("fa-chevron-up");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

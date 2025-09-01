@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compilador FlashML</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/theme/eclipse.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "flash-red": "#cc0000",
+              "flash-red-dark": "#990000",
+              "flash-yellow": "#ffcc00",
+              "flash-gold": "#e6b800",
+              "flash-dark": "#121212",
+              "flash-gray": "#1e1e1e",
+              "flash-light": "#f5f5f5",
+              "flash-accent": "#f44336",
+            },
+            boxShadow: {
+              flash: "0 0 20px rgba(255, 204, 0, 0.3)",
+              "flash-glow": "0 0 15px rgba(204, 0, 0, 0.6)",
+              "inner-flash": "inset 0 0 8px rgba(255, 204, 0, 0.4)",
+            },
+            animation: {
+              "pulse-subtle": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              lightning: "lightning 1.5s ease-in-out infinite",
+              fadeIn: "fadeIn 0.5s ease-in-out",
+            },
+            keyframes: {
+              lightning: {
+                "0%, 100%": { opacity: "1" },
+                "50%": { opacity: "0.7" },
+              },
+              fadeIn: {
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
+              },
+            },
+            backgroundImage: {
+              "lightning-pattern":
+                "linear-gradient(135deg, #cc0000 25%, transparent 25%), linear-gradient(225deg, #cc0000 25%, transparent 25%), linear-gradient(45deg, #cc0000 25%, transparent 25%), linear-gradient(315deg, #cc0000 25%, #121212 25%)",
+            },
+          },
+        },
+      };
+    </script>
+    <!-- Overrides for CodeMirror and Themes -->
+    <style>
+      /* Tema oscuro (predeterminado) */
+      .theme-dark {
+        background-color: #121212;
+        color: #ffffff;
+      }
+      .theme-dark .bg-flash-dark {
+        background-color: #121212;
+      }
+      .theme-dark .bg-flash-gray {
+        background-color: #1e1e1e;
+      }
+      .theme-dark .text-gray-400 {
+        color: #9ca3af;
+      }
+      .theme-dark .CodeMirror {
+        background-color: rgba(18, 18, 18, 0.9);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5),
+          inset 0 0 8px rgba(255, 204, 0, 0.2);
+      }
+      .theme-dark .CodeMirror-gutters {
+        background-color: rgba(10, 10, 10, 0.9);
+        border-right: 1px solid #cc0000;
+      }
+      .theme-dark .CodeMirror-linenumber {
+        color: rgba(255, 204, 0, 0.5);
+      }
+      .theme-dark .CodeMirror-cursor {
+        border-left: 2px solid #ffcc00 !important; /* Cursor amarillo */
+      }
+
+      /* Tema claro */
+      .theme-light {
+        background-color: #f5f5f5;
+        color: #333333;
+      }
+      .theme-light .bg-flash-dark {
+        background-color: #ffffff;
+      }
+      .theme-light .bg-flash-gray {
+        background-color: #e5e7eb;
+      }
+      .theme-light .text-gray-400 {
+        color: #4b5563;
+      }
+      .theme-light .CodeMirror {
+        background-color: #ffffff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .theme-light .CodeMirror-gutters {
+        background-color: #f5f5f5;
+        border-right: 1px solid #cc0000;
+      }
+      .theme-light .CodeMirror-linenumber {
+        color: #cc0000;
+      }
+      .theme-light .CodeMirror-cursor {
+        border-left: 2px solid #cc0000 !important; /* Cursor rojo */
+      }
+
+      /* Estilos para el modo FlashML */
+      .cm-keyword {
+        color: #cc0000;
+        font-weight: bold;
+      }
+      .cm-attribute {
+        color: #3498db;
+      }
+      .cm-string {
+        color: #2ecc71;
+      }
+      .cm-comment {
+        color: #95a5a6;
+        font-style: italic;
+      }
+      .cm-text {
+        color: #ecf0f1;
+      }
+
+      /* Scrollbar personalizado */
+      .CodeMirror ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      .CodeMirror ::-webkit-scrollbar-track {
+        background: rgba(30, 30, 30, 0.8);
+      }
+      .CodeMirror ::-webkit-scrollbar-thumb {
+        background: rgba(204, 0, 0, 0.5);
+        border-radius: 4px;
+      }
+      .CodeMirror ::-webkit-scrollbar-thumb:hover {
+        background: rgba(204, 0, 0, 0.8);
+      }
+
+      /* Animación del logo */
+      @keyframes lightning-bolt {
+        0% {
+          transform: scale(1);
+          filter: brightness(1);
+        }
+        50% {
+          transform: scale(1.1);
+          filter: brightness(1.3);
+        }
+        100% {
+          transform: scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      .lightning-animate {
+        animation: lightning-bolt 1.5s infinite;
+      }
+
+      /* Efectos de hover para cards */
+      .file-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 204, 0, 0.3);
+      }
+
+      /* Estilo para estado activo de los botones */
+      .flash-button:active {
+        transform: scale(0.98);
+      }
+
+      /* Tooltip personalizado */
+      .tooltip {
+        position: relative;
+      }
+
+      .tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #121212;
+        color: #ffcc00;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 100;
+        border: 1px solid #cc0000;
+      }
+    </style>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body
+    class="theme-dark min-h-screen flex flex-col bg-[url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\' viewBox=\'0 0 60 60\'><path d=\'M30 5 L35 25 L45 25 L35 35 L40 55 L30 40 L20 55 L25 35 L15 25 L25 25 Z\' stroke=\'%23cc0000\' stroke-width=\'0.5\' fill=\'none\' opacity=\'0.03\'/></svg>')] bg-fixed"
+  >
+    <!-- Decorative Lightning Bolt SVG top -->
+    <div
+      class="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-flash-red via-flash-yellow to-flash-red opacity-80"
+    ></div>
+
+    <!-- Navbar -->
+    <nav
+      class="bg-flash-gray bg-opacity-95 shadow-lg z-10 sticky top-0 backdrop-filter backdrop-blur-sm border-b border-flash-red"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <!-- Logo SVG -->
+            <div class="flex-shrink-0 mr-4">
+              <svg
+                class="h-10 w-10 lightning-animate"
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="#121212"
+                  stroke="#ffcc00"
+                  stroke-width="2"
+                />
+                <path
+                  d="M65,20 L35,50 L50,50 L35,80 L65,50 L50,50 Z"
+                  fill="#cc0000"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="none"
+                  stroke="#ffcc00"
+                  stroke-width="2"
+                  stroke-dasharray="10,5"
+                  class="animate-spin"
+                  style="animation-duration: 20s"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1
+                class="text-2xl font-bold bg-gradient-to-r from-flash-red to-flash-yellow bg-clip-text text-transparent"
+              >
+                Compilador FlashML
+              </h1>
+              <p class="text-xs text-gray-400">
+                Transformando código a la velocidad del rayo
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <!-- Stats -->
+            <div
+              class="hidden md:flex items-center space-x-1 text-sm border-r border-gray-700 pr-4"
+            >
+              <div class="flex flex-col items-center px-2">
+                <span class="text-flash-yellow font-medium">258</span>
+                <span class="text-gray-400 text-xs">Archivos</span>
+              </div>
+              <div class="flex flex-col items-center px-2">
+                <span class="text-flash-yellow font-medium">1,205</span>
+                <span class="text-gray-400 text-xs">Compilaciones</span>
+              </div>
+            </div>
+
+            <!-- Theme Toggle -->
+            <button
+              id="theme-toggle"
+              class="p-2 rounded-full bg-flash-gray hover:bg-opacity-80 transition-all tooltip"
+              data-tooltip="Cambiar tema"
+            >
+              <svg
+                id="theme-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-flash-yellow"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
+              </svg>
+            </button>
+
+            <!-- Help Button -->
+            <button
+              id="help-button"
+              class="p-2 rounded-full bg-flash-gray hover:bg-opacity-80 transition-all tooltip"
+              data-tooltip="Documentación"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-flash-yellow"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex-grow container mx-auto py-8 px-4 relative">
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Panel with Editor -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Editor Panel -->
+          <div
+            class="bg-flash-gray rounded-lg overflow-hidden shadow-flash border border-flash-gray relative group"
+          >
+            <!-- Tab Navigation -->
+            <div
+              class="flex items-center bg-black bg-opacity-50 border-b border-flash-gray text-sm"
+            >
+              <div
+                class="px-4 py-2 bg-flash-red text-white flex items-center space-x-2 rounded-t"
+              >
+                <i class="fas fa-bolt text-flash-yellow"></i>
+                <span>main.flashml</span>
+              </div>
+              <!-- <div
+                class="px-4 py-2 text-gray-400 hover:text-white flex items-center space-x-2 cursor-pointer transition-colors"
+              >
+                <i class="far fa-file-code"></i>
+                <span>ejemplos.flashml</span>
+              </div> -->
+              <div class="ml-auto pr-2 flex space-x-1">
+                <button
+                  class="p-1 text-gray-400 hover:text-flash-yellow"
+                  title="Nuevo archivo"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Code Editor -->
+            <div class="relative">
+              <textarea id="editor" class="w-full"></textarea>
+
+              <!-- Floating Action Button for Compile -->
+              <div class="absolute bottom-4 right-4 z-10">
+                <button
+                  id="compilar"
+                  class="flash-button bg-flash-red hover:bg-flash-red-dark text-white rounded-full w-12 h-12 flex items-center justify-center shadow-flash-glow transition-all duration-300 group-hover:scale-105"
+                >
+                  <i class="fas fa-bolt text-xl"></i>
+                </button>
+              </div>
+
+              <!-- Line highlights decorative element -->
+              <div
+                class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20"
+              >
+                <div class="h-6 bg-flash-yellow bg-opacity-10 mt-36"></div>
+                <div class="h-6 bg-flash-yellow bg-opacity-10 mt-12"></div>
+              </div>
+            </div>
+
+            <!-- Bottom Info Bar -->
+            <div
+              class="bg-flash-gray bg-opacity-90 border-t border-flash-red border-opacity-30 px-4 py-2 flex justify-between text-xs text-gray-400"
+            >
+              <div class="flex space-x-4">
+                <span>FlashML</span>
+                <span>UTF-8</span>
+              </div>
+              <div class="flex space-x-4">
+                <span class="flex items-center">
+                  <i class="fas fa-keyboard mr-1"></i>
+                  <span>Ctrl+S para auto-indentar</span>
+                </span>
+                <span class="flex items-center">
+                  <i class="fas fa-bolt mr-1 text-flash-yellow"></i>
+                  <span>Flash v1.0.3</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Panel -->
+          <div
+            class="bg-flash-gray rounded-lg shadow-lg overflow-hidden border border-flash-gray"
+          >
+            <div
+              class="flex justify-between items-center bg-black bg-opacity-50 px-4 py-3 border-b border-flash-gray"
+            >
+              <h2
+                class="text-md font-bold text-flash-yellow flex items-center space-x-2"
+              >
+                <i class="fas fa-terminal"></i>
+                <span>Estado de Compilación</span>
+              </h2>
+              <div class="flex space-x-2">
+                <button
+                  id="limpiar-estado"
+                  class="text-xs bg-flash-gray hover:bg-opacity-80 px-2 py-1 rounded text-gray-300 transition-colors"
+                >
+                  <i class="fas fa-broom mr-1"></i>
+                  Limpiar
+                </button>
+              </div>
+            </div>
+            <div class="p-4">
+              <div
+                id="estado"
+                class="bg-black bg-opacity-60 text-green-400 rounded-md p-4 font-mono text-sm min-h-16 max-h-32 overflow-auto shadow-inner border border-flash-gray"
+              >
+                > Sistema listo para compilar código FlashML...
+              </div>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button
+                  id="visualizar"
+                  style="display: none"
+                  class="flash-button bg-flash-gray hover:bg-opacity-80 text-flash-yellow border border-flash-yellow px-4 py-2 rounded transition-all duration-200 flex items-center space-x-2"
+                >
+                  <i class="fas fa-eye"></i>
+                  <span>Ver HTML</span>
+                </button>
+                <button
+                  id="descargar"
+                  style="display: none"
+                  class="flash-button bg-flash-gray hover:bg-opacity-80 text-flash-yellow border border-flash-yellow px-4 py-2 rounded transition-all duration-200 flex items-center space-x-2"
+                >
+                  <i class="fas fa-download"></i>
+                  <span>Descargar HTML</span>
+                </button>
+                <button
+                  id="compartir"
+                  style="display: none"
+                  class="flash-button bg-flash-gray hover:bg-opacity-80 text-gray-300 border border-gray-600 px-4 py-2 rounded transition-all duration-200 flex items-center space-x-2"
+                >
+                  <i class="fas fa-share-alt"></i>
+                  <span>Compartir</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="space-y-6">
+          <!-- Archivo Actual Panel -->
+          <div
+            class="bg-flash-gray rounded-lg shadow-lg overflow-hidden border border-flash-gray"
+          >
+            <div
+              class="bg-black bg-opacity-50 px-4 py-3 border-b border-flash-gray"
+            >
+              <h2
+                class="text-md font-bold text-flash-yellow flex items-center space-x-2"
+              >
+                <i class="fas fa-file-code"></i>
+                <span>Archivo Actual</span>
+              </h2>
+            </div>
+            <div class="p-4 space-y-3">
+              <div
+                class="bg-black bg-opacity-30 rounded-md p-3 border border-flash-gray border-opacity-50"
+              >
+                <div class="flex justify-between items-center">
+                  <h3 class="text-flash-yellow font-medium">main.flashml</h3>
+                  <span class="text-xs text-gray-400" id="ultima-edicion"
+                    >Editado hace 2 min</span
+                  >
+                </div>
+                <div class="text-sm mt-2 text-gray-300">
+                  <div class="flex items-center mt-1 text-xs">
+                    <div
+                      class="w-3 h-3 rounded-full bg-green-500 mr-2"
+                      id="estado-compilacion"
+                    ></div>
+                    <span id="mensaje-compilacion">Compilación exitosa</span>
+                  </div>
+                  <div class="flex justify-between mt-3 text-xs text-gray-400">
+                    <span id="lineas">45 líneas</span>
+                    <span id="tamano">2.3 KB</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-black bg-opacity-30 rounded-md p-3 border border-flash-gray border-opacity-20"
+              >
+                <h3 class="text-sm font-medium text-gray-300">
+                  Información de Estructura
+                </h3>
+                <div class="text-xs mt-2 space-y-1">
+                  <div class="flex justify-between">
+                    <span class="text-gray-400">Elementos:</span>
+                    <span class="text-flash-yellow" id="elementos">8</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-400">Anidación max:</span>
+                    <span class="text-flash-yellow" id="anidacion"
+                      >3 niveles</span
+                    >
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-400">Velocistas:</span>
+                    <span class="text-flash-yellow" id="velocistas">5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generated Files Panel -->
+          <div
+            class="bg-flash-gray rounded-lg shadow-lg overflow-hidden border border-flash-gray"
+          >
+            <div
+              class="bg-black bg-opacity-50 px-4 py-3 border-b border-flash-gray flex justify-between items-center"
+            >
+              <h2
+                class="text-md font-bold text-flash-yellow flex items-center space-x-2"
+              >
+                <i class="fas fa-folder-open"></i>
+                <span>Archivos Generados</span>
+              </h2>
+              <span
+                class="text-xs bg-flash-yellow bg-opacity-20 text-flash-yellow px-2 py-0.5 rounded-full"
+                id="contador-archivos"
+                >0 archivos</span
+              >
+            </div>
+            <div class="p-4">
+              <div id="archivos-generados" class="space-y-3">
+                <!-- Archivos generados se llenarán dinámicamente -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Reference / Tutorial Collapsible -->
+          <div
+            class="bg-flash-gray rounded-lg shadow-lg overflow-hidden border border-flash-gray"
+          >
+            <div
+              class="bg-black bg-opacity-50 px-4 py-3 border-b border-flash-gray flex justify-between items-center cursor-pointer"
+              id="quick-ref-header"
+            >
+              <h2
+                class="text-md font-bold text-flash-yellow flex items-center space-x-2"
+              >
+                <i class="fas fa-book"></i>
+                <span>Referencia Rápida</span>
+              </h2>
+              <i
+                class="fas fa-chevron-down text-flash-yellow transition-transform"
+                id="quick-ref-icon"
+              ></i>
+            </div>
+            <div class="p-4 hidden" id="quick-ref-content">
+              <div class="space-y-3 text-sm">
+                <div>
+                  <h3 class="text-flash-yellow font-medium mb-1">
+                    Estructura Básica
+                  </h3>
+                  <pre
+                    class="bg-black bg-opacity-40 p-2 rounded-md text-xs overflow-x-auto"
+                  >
+        @velocista
+            @titulo La velocidad de Barry Allen @/titulo
+            @temporada numero="1"
+                @episodio
+                    @escena
+                        @personaje nombre="Barry Allen" actor="Grant Gustin"
+                            @dialogo ¡Soy @rapido el hombre más rápido @/rapido del mundo! @/dialogo
+                        @/personaje
+                    @/escena
+                @/episodio
+            @/temporada
+        @/velocista
+                </pre
+                  >
+                </div>
+
+                <div>
+                  <h3 class="text-flash-yellow font-medium mb-1">
+                    Componentes Comunes
+                  </h3>
+                  <ul
+                    class="list-disc list-inside space-y-1 text-xs ml-2 text-gray-300"
+                  >
+                    <li>
+                      <code class="bg-black bg-opacity-40 px-1 rounded"
+                        >@velocista tipo="encabezado"</code
+                      >
+                    </li>
+                    <li>
+                      <code class="bg-black bg-opacity-40 px-1 rounded"
+                        >@velocista tipo="párrafo"</code
+                      >
+                    </li>
+                    <li>
+                      <code class="bg-black bg-opacity-40 px-1 rounded"
+                        >@velocista tipo="imagen" src="ruta.jpg"</code
+                      >
+                    </li>
+                    <li>
+                      <code class="bg-black bg-opacity-40 px-1 rounded"
+                        >@velocista tipo="enlace" href="url"</code
+                      >
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="text-right">
+                  <a
+                    href="documentation"
+                    class="text-flash-yellow hover:text-flash-gold text-xs flex items-center justify-end space-x-1"
+                  >
+                    <span>Ver documentación completa</span>
+                    <i class="fas fa-external-link-alt"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Animated Flash Line -->
+    <div
+      class="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-flash-yellow via-flash-red to-flash-yellow animate-pulse-subtle"
+    ></div>
+
+    <!-- Footer -->
+    <footer
+      class="mt-6 py-4 bg-flash-gray border-t border-flash-red border-opacity-30 text-center text-sm text-gray-400"
+    >
+      <div class="container mx-auto px-4">
+        <p>
+          FlashML Compiler v1.0.3 • Transformando tu código a la velocidad de la
+          luz
+        </p>
+        <p class="mt-1 text-xs">
+          <span class="text-flash-yellow">⚡</span> Desarrollado con pasión por
+          velocistas de código <span class="text-flash-yellow">⚡</span>
+        </p>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/xml/xml.min.js"></script>
+    <script src="/static/Js/flashml-mode.js"></script>
+    <script src="/static/Js/script.js"></script>
+  </body>
+</html>
